@@ -17,9 +17,14 @@ interface Pagination {
   total: number;
 }
 
+interface ListContent {
+  contentId: string;
+  contentType: string;
+}
+
 interface ListResponse {
   message: string;
-  data: User['myList'] | Pagination;
+  data: ListContent | Pagination;
   statusCode: number;
 }
 

@@ -11,7 +11,6 @@ import { TVShow } from 'src/models/tvshow.schema';
 import { Movie } from 'src/models/movie.schema';
 import { GetListDto } from './dto/get-list.dto';
 
-const ObjectId = mongoose.Types.ObjectId;
 @Injectable()
 export class ListService {
   constructor(
@@ -22,51 +21,67 @@ export class ListService {
 
   async addToList(createListDto: CreateListDto) {
     const { contentId, userId } = createListDto;
-    const user = await this.userModel.findById(userId);
+    const user = await this.userModel.findById(userId, { _id: 1 });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    if (user.myList.some((item) => item.contentId === contentId)) {
-      throw new ConflictException('Movie/TV show already in list');
-    }
-    const movie = await this.movieModel.findById(new ObjectId(contentId));
-    const tvshow = await this.tvshowModel.findById(new ObjectId(contentId));
+    const movie = await this.movieModel.findById(contentId);
+    const tvshow = await this.tvshowModel.findById(contentId);
     if (!movie && !tvshow) {
       throw new NotFoundException('Movie/TV show not found');
     }
 
     const contentType = movie ? 'Movie' : 'TVShow';
 
-    user.myList.push({ contentId, contentType });
-    const updatedUser = await user.save();
+    const updatedUser = await this.userModel.updateOne(
+      { _id: userId, 'myList.contentId': { $ne: contentId } },
+      {
+        $addToSet: { myList: { contentId, contentType } },
+      },
+      { fields: { _id: 1 } },
+    );
+    if (updatedUser.modifiedCount === 0) {
+      throw new ConflictException('Movie/TV show already in list');
+    }
+
     return {
       message: 'Movie/TV show added to list',
-      data: updatedUser.myList,
+      data: { contentId, contentType },
       statusCode: 200,
     };
   }
 
   async removeFromList(id: string, userId: string) {
-    const user = await this.userModel.findById(new ObjectId(userId));
+    const user = await this.userModel.findById(userId, {
+      _id: 1,
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    if (!user.myList.some((item) => item.contentId === id)) {
+
+    const updatedUser = await this.userModel.updateOne(
+      { _id: userId, 'myList._id': id },
+      {
+        $pull: { myList: { _id: id } },
+      },
+      { fields: { _id: 1 } },
+    );
+
+    if (updatedUser.modifiedCount === 0) {
       throw new NotFoundException('Movie/TV show not found in list');
     }
-    user.myList = user.myList.filter((item) => item.contentId !== id);
-    const updatedUser = await user.save();
+
     return {
       message: 'Movie/TV show removed from list',
-      data: updatedUser.myList,
+      data: null,
       statusCode: 202,
     };
   }
 
   async listMyItems(getListDto: GetListDto) {
     const { userId, contentType, page, limit } = getListDto;
-    const user = await this.userModel.findById(new ObjectId(userId));
+    const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
