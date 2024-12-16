@@ -7,6 +7,8 @@ import { User, UserSchema } from './models/user.schema';
 import { TVShow, TVShowSchema } from './models/tvshow.schema';
 import { Movie, MovieSchema } from './models/movie.schema';
 import { ListModule } from './list/list.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { NotFoundInterceptor } from './interceptor/not-found.interceptor';
 
 @Module({
   imports: [
@@ -20,6 +22,12 @@ import { ListModule } from './list/list.module';
     ]),
     ListModule,
   ],
-  providers: [SeedService],
+  providers: [
+    SeedService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: NotFoundInterceptor,
+    },
+  ],
 })
 export class AppModule {}
