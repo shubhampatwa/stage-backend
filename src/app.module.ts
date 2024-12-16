@@ -6,6 +6,7 @@ import { SeedService } from './seed/seed.service';
 import { User, UserSchema } from './models/user.schema';
 import { TVShow, TVShowSchema } from './models/tvshow.schema';
 import { Movie, MovieSchema } from './models/movie.schema';
+import { ListModule } from './list/list.module';
 
 @Module({
   imports: [
@@ -17,12 +18,8 @@ import { Movie, MovieSchema } from './models/movie.schema';
       { name: Movie.name, schema: MovieSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    ListModule,
   ],
   providers: [SeedService],
 })
-export class AppModule {
-  constructor(private readonly seedService: SeedService) {}
-  async onModuleInit() {
-    await this.seedService.seedDatabase();
-  }
-}
+export class AppModule {}
