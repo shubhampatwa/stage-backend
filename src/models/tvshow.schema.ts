@@ -28,3 +28,5 @@ export class TVShow {
 }
 
 export const TVShowSchema = SchemaFactory.createForClass(TVShow);
+
+TVShowSchema.index({ genres: 1 });

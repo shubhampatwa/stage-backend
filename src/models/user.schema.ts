@@ -58,3 +58,6 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.index({ 'myList.contentId': 1 }, { unique: true });
+UserSchema.index({ 'myList._id': 1 });

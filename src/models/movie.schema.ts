@@ -33,3 +33,5 @@ export class Movie {
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);
+
+MovieSchema.index({ genres: 1 });
