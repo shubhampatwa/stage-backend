@@ -1,11 +1,25 @@
-import { Body, Controller, Delete, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ListService } from './list.service';
 import { CreateListDto } from './dto/create-list.dto';
 import { User } from 'src/models/user.schema';
+import { GetListDto } from './dto/get-list.dto';
+
+interface Pagination {
+  myList: User['myList'];
+  total: number;
+}
 
 interface ListResponse {
   message: string;
-  data: User;
+  data: User['myList'] | Pagination;
   statusCode: number;
 }
 
@@ -27,5 +41,10 @@ export class ListController {
     @Body() { userId }: { userId: string },
   ): Promise<ListResponse> {
     return this.listService.removeFromList(id, userId);
+  }
+
+  @Get()
+  async listMyItems(@Query() getListDto: GetListDto): Promise<ListResponse> {
+    return this.listService.listMyItems(getListDto);
   }
 }

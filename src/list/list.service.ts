@@ -9,6 +9,7 @@ import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { TVShow } from 'src/models/tvshow.schema';
 import { Movie } from 'src/models/movie.schema';
+import { GetListDto } from './dto/get-list.dto';
 
 const ObjectId = mongoose.Types.ObjectId;
 @Injectable()
@@ -38,10 +39,10 @@ export class ListService {
     const contentType = movie ? 'Movie' : 'TVShow';
 
     user.myList.push({ contentId, contentType });
-    await user.save();
+    const updatedUser = await user.save();
     return {
       message: 'Movie/TV show added to list',
-      data: user,
+      data: updatedUser.myList,
       statusCode: 200,
     };
   }
@@ -58,13 +59,29 @@ export class ListService {
     const updatedUser = await user.save();
     return {
       message: 'Movie/TV show removed from list',
-      data: updatedUser,
+      data: updatedUser.myList,
       statusCode: 202,
     };
   }
 
-  async listMyItems() {
-    throw new Error('Method not implemented.');
+  async listMyItems(getListDto: GetListDto) {
+    const { userId, contentType, page, limit } = getListDto;
+    const user = await this.userModel.findById(new ObjectId(userId));
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const myList = contentType
+      ? user.myList.filter((item) => item.contentType === contentType)
+      : user.myList;
+    const list = myList.slice((page - 1) * limit, page * limit);
+    const total = myList.length;
+
+    return {
+      message: 'List fetched successfully',
+      data: { myList: list, total },
+      statusCode: 200,
+    };
   }
 
   async listUser() {
