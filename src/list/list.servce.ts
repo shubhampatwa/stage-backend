@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class UserService {
+export class ListService {
   constructor() {}
 
   async addToList() {
@@ -12,7 +12,7 @@ export class UserService {
     throw new Error('Method not implemented.');
   }
 
-  async listMyItems(){
+  async listMyItems() {
     throw new Error('Method not implemented.');
   }
 
