@@ -29,7 +29,6 @@ export class ListService {
     if (user.myList.some((item) => item.contentId === contentId)) {
       throw new ConflictException('Movie/TV show already in list');
     }
-
     const movie = await this.movieModel.findById(new ObjectId(contentId));
     const tvshow = await this.tvshowModel.findById(new ObjectId(contentId));
     if (!movie && !tvshow) {
@@ -40,11 +39,28 @@ export class ListService {
 
     user.myList.push({ contentId, contentType });
     await user.save();
-    return user;
+    return {
+      message: 'Movie/TV show added to list',
+      data: user,
+      statusCode: 200,
+    };
   }
 
-  async removeFromList() {
-    throw new Error('Method not implemented.');
+  async removeFromList(id: string, userId: string) {
+    const user = await this.userModel.findById(new ObjectId(userId));
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!user.myList.some((item) => item.contentId === id)) {
+      throw new NotFoundException('Movie/TV show not found in list');
+    }
+    user.myList = user.myList.filter((item) => item.contentId !== id);
+    const updatedUser = await user.save();
+    return {
+      message: 'Movie/TV show removed from list',
+      data: updatedUser,
+      statusCode: 202,
+    };
   }
 
   async listMyItems() {
