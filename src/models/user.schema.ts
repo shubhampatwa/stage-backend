@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 export type UserDocument = User & Document;
 import { genre } from '../constants/constants';
 
@@ -47,17 +47,23 @@ export class User {
 
   @Prop([
     {
-      contentId: { type: String, required: true },
+      contentId: { type: MongooseSchema.ObjectId, required: true },
       contentType: { type: String, enum: ['Movie', 'TVShow'], required: true },
     },
   ])
   myList: {
-    contentId: string;
-    contentType: string;
+    contentId: {
+      type: MongooseSchema.Types.ObjectId;
+      ref: 'Movie' | 'TVShow';
+    };
+    contentType: {
+      type: String;
+      enum: ['Movie', 'TVShow'];
+    };
   }[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.index({ 'myList.contentId': 1 }, { unique: true });
+UserSchema.index({ 'myList.contentId': 1 });
 UserSchema.index({ 'myList._id': 1 });

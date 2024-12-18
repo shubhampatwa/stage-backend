@@ -81,20 +81,58 @@ export class ListService {
 
   async listMyItems(getListDto: GetListDto) {
     const { userId, contentType, page, limit } = getListDto;
-    const user = await this.userModel.findById(userId);
-    if (!user) {
+    const matchQuery = {
+      _id: new mongoose.Types.ObjectId(userId),
+    };
+    if (contentType) {
+      matchQuery['myList.contentType'] = contentType;
+    }
+    const mylist = await this.userModel
+      .aggregate([
+        { $match: matchQuery },
+        { $unwind: '$myList' },
+        {
+          $match: {
+            'myList.contentType': contentType ?? { $in: ['Movie', 'TVShow'] },
+          },
+        },
+        { $sort: { 'myList._id': -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'movies',
+            localField: 'myList.contentId',
+            foreignField: '_id',
+            as: 'movie',
+          },
+        },
+        {
+          $lookup: {
+            from: 'tvshows',
+            localField: 'myList.contentId',
+            foreignField: '_id',
+            as: 'tvshow',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            myList: 1,
+            movie: 1,
+            tvshow: 1,
+          },
+        },
+      ])
+      .exec();
+
+    if (!mylist) {
       throw new NotFoundException('User not found');
     }
 
-    const myList = contentType
-      ? user.myList.filter((item) => item.contentType === contentType)
-      : user.myList;
-    const list = myList.slice((page - 1) * limit, page * limit);
-    const total = myList.length;
-
     return {
       message: 'List fetched successfully',
-      data: { myList: list, total },
+      data: mylist,
       statusCode: 200,
     };
   }

@@ -11,10 +11,14 @@ import { ListService } from './list.service';
 import { CreateListDto } from './dto/create-list.dto';
 import { User } from 'src/models/user.schema';
 import { GetListDto } from './dto/get-list.dto';
+import { Movie } from 'src/models/movie.schema';
+import { TVShow } from 'src/models/tvshow.schema';
 
-interface Pagination {
+interface PaginatedList {
   myList: User['myList'];
-  total: number;
+  movie: Movie[];
+  tvshow: TVShow[];
+  _id: string;
 }
 
 interface ListContent {
@@ -24,7 +28,7 @@ interface ListContent {
 
 interface ListResponse {
   message: string;
-  data: ListContent | Pagination;
+  data: ListContent | PaginatedList[];
   statusCode: number;
 }
 

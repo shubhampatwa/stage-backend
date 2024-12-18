@@ -17,12 +17,12 @@ export class GetListDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsOptional()
-  @Transform(({ value }) => parseInt(value))
+  @Transform(({ value }) => (parseInt(value) < 1 ? 1 : parseInt(value)))
   page: number = 1;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsOptional()
-  @Transform(({ value }) => parseInt(value))
+  @Transform(({ value }) => (parseInt(value) < 1 ? 1 : parseInt(value)))
   limit: number = 10;
 }
